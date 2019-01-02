@@ -12,30 +12,66 @@ import GameplayKit
 
 class GameScene: SKScene {
     
+    //MARK:- Properties
     private var coinMan: SKSpriteNode?
+    private var ground: SKSpriteNode?
+    private var ceiling: SKSpriteNode?
     private var coinTimer: Timer?
     private var coinTimerInterval: Double = 1.0
     
+    //MARK:- Contact/Collision Properties
+    let coinManCategory: UInt32 = 0x1 << 1 //1
+    let coinCategory: UInt32 = 0x1 << 2 //2
+    let bombCategory: UInt32 = 0x1 << 3 //4
+    let boundingCategory: UInt32 = 0x1 << 4 //8
+    
     override func didMove(to view: SKView) {
         
+        //set up the contact delegate(s)
+        physicsWorld.contactDelegate = self
+        
+        initalizePlayArea()
+        initializeCoinMan()
+        initializeCoinTimer()
+        
+    }
+    
+    func initalizePlayArea() {
+        ground = childNode(withName: "ground") as? SKSpriteNode
+        ground?.physicsBody?.categoryBitMask = boundingCategory
+        
+        ceiling = childNode(withName: "ceiling") as? SKSpriteNode
+        ceiling?.physicsBody?.categoryBitMask = boundingCategory
+    }
+    
+    func initializeCoinMan() {
         //create a reference to the object created in sks
         coinMan = childNode(withName: "coinMan") as? SKSpriteNode
         
-        initializeCoinTimer()
+        //contact/collision setup
+        coinMan?.physicsBody?.categoryBitMask = coinManCategory
+        coinMan?.physicsBody?.contactTestBitMask = coinCategory | bombCategory
+        
         
     }
     
     func initializeCoinTimer() {
         coinTimer = Timer.scheduledTimer(withTimeInterval: coinTimerInterval, repeats: true, block: { (_) in
-            self.createCoin()
+            self.createCoins()
         })
     }
     
     //MARK:- Coin creation function
-    func createCoin() {
+    func createCoins() {
         let coin = SKSpriteNode(imageNamed: "coin")
-        addChild(coin)
         
+        //physicsBody setups
+        coin.physicsBody = SKPhysicsBody(rectangleOf: coin.size)
+        coin.physicsBody?.affectedByGravity = false
+        coin.physicsBody?.categoryBitMask = coinCategory
+        coin.physicsBody?.contactTestBitMask = coinManCategory
+        
+        addChild(coin)
         
         //position the coin, according to the scene
         let maxY = (size.height / 2) - (coin.size.height / 2)
@@ -64,5 +100,12 @@ class GameScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+    }
+}
+
+extension SKScene: SKPhysicsContactDelegate {
+    //MARK:- Contact detection
+    public func didBegin(_ contact: SKPhysicsContact) {
+        print("Collision detected")
     }
 }
