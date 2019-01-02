@@ -18,12 +18,20 @@ class GameScene: SKScene {
     private var ceiling: SKSpriteNode?
     private var coinTimer: Timer?
     private var coinTimerInterval: Double = 1.0
+    private var scoreLabel: SKLabelNode!
     
     //MARK:- Contact/Collision Properties
     let coinManCategory: UInt32 = 0x1 << 1 //1
     let coinCategory: UInt32 = 0x1 << 2 //2
     let bombCategory: UInt32 = 0x1 << 3 //4
     let boundingCategory: UInt32 = 0x1 << 4 //8
+    
+    //MARK:- Round properties
+    var score: Int = 0 {
+        didSet {
+            scoreLabel?.text = "Score: \(score)"
+        }
+    }
     
     override func didMove(to view: SKView) {
         
@@ -37,11 +45,21 @@ class GameScene: SKScene {
     }
     
     func initalizePlayArea() {
+        //set up the label
+        scoreLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")
+        scoreLabel.text = "Score: \(score)"
+        scoreLabel.fontSize = 64
+        scoreLabel.fontColor = SKColor.white
+        scoreLabel?.position = CGPoint(x: frame.minX * 0.5, y: frame.maxY - 150) //position at the top left
+        addChild(scoreLabel)
+        
         ground = childNode(withName: "ground") as? SKSpriteNode
         ground?.physicsBody?.categoryBitMask = boundingCategory
+        ground?.physicsBody?.collisionBitMask = coinManCategory
         
         ceiling = childNode(withName: "ceiling") as? SKSpriteNode
         ceiling?.physicsBody?.categoryBitMask = boundingCategory
+        ceiling?.physicsBody?.collisionBitMask = coinManCategory
     }
     
     func initializeCoinMan() {
@@ -51,6 +69,7 @@ class GameScene: SKScene {
         //contact/collision setup
         coinMan?.physicsBody?.categoryBitMask = coinManCategory
         coinMan?.physicsBody?.contactTestBitMask = coinCategory | bombCategory
+        coinMan?.physicsBody?.collisionBitMask = boundingCategory //coin man should only be able to "collide" with bounding areas
         
         
     }
@@ -70,6 +89,7 @@ class GameScene: SKScene {
         coin.physicsBody?.affectedByGravity = false
         coin.physicsBody?.categoryBitMask = coinCategory
         coin.physicsBody?.contactTestBitMask = coinManCategory
+        coin.physicsBody?.collisionBitMask = 0
         
         addChild(coin)
         
@@ -106,6 +126,22 @@ class GameScene: SKScene {
 extension SKScene: SKPhysicsContactDelegate {
     //MARK:- Contact detection
     public func didBegin(_ contact: SKPhysicsContact) {
-        print("Collision detected")
+        //fired off when objects "hit" one another
+        if let scene = self as? GameScene {
+            scene.score += 1
+            
+            //if the first body is the coin...
+            if contact.bodyA.categoryBitMask == scene.coinCategory {
+                //...remove the coin
+                contact.bodyA.node?.removeFromParent()
+            }
+            
+            if contact.bodyB.categoryBitMask == scene.coinCategory {
+                contact.bodyB.node?.removeFromParent()
+            }
+        }
+        
+        //was contactA coin or player?
+        
     }
 }
