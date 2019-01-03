@@ -23,7 +23,10 @@ class GameScene: SKScene {
     private var coinTimerInterval: Double = 1.0
     private var bombTimer: Timer?
     private var bombTimerInterval: Double = 2.0
+    private var startTimer: Timer?
+    private var startTimerInterval: Double = 3.0
     
+    private var countdownLabel: SKLabelNode!
     private var scoreLabel: SKLabelNode!
     private var yourScoreLabel: SKLabelNode!
     private var finalScoreLabel: SKLabelNode!
@@ -42,11 +45,18 @@ class GameScene: SKScene {
         }
     }
     
+    var countdown: Int = 3 {
+        didSet {
+            countdownLabel.text = "\(countdown)"
+        }
+    }
+    
     override func didMove(to view: SKView) {
         
         //set up the contact delegate(s)
         physicsWorld.contactDelegate = self
         
+        //startNewRoundCountdown()
         initalizePlayArea()
         initializeCoinMan()
         initializeCoinTimer()
@@ -81,7 +91,7 @@ class GameScene: SKScene {
         ceiling.position = CGPoint(x: -0, y: 819.538)
         
         ceiling.physicsBody = SKPhysicsBody(rectangleOf: ceiling.size)
-        ceiling.physicsBody?.isDynamic = true
+        ceiling.physicsBody?.isDynamic = false
         ceiling.physicsBody?.affectedByGravity = false
         ceiling.physicsBody?.categoryBitMask = boundingCategory
         ceiling.physicsBody?.collisionBitMask = coinManCategory
@@ -238,16 +248,52 @@ class GameScene: SKScene {
         coinTimer?.invalidate()
         
         //call your init functions again
-        initalizePlayArea()
-        initializeCoinMan()
-        initializeCoinTimer()
-        initializeBombTimer()
+        //initalizePlayArea()
+        //initializeCoinMan()
+        //initializeCoinTimer()
+        //initializeBombTimer()
+        
+        //start the new round timer
+        startNewRoundCountdown()
+    }
+    
+    func startNewRoundCountdown() {
+        startTimer = Timer.scheduledTimer(withTimeInterval: startTimerInterval, repeats: true, block: { [unowned self] (_) in
+            
+            while self.startTimerInterval > 0.0 {
+                self.startTimerInterval -= 1.0
+                //self.countdown -= 1
+            }
+            
+            
+            print(self.startTimerInterval)
+            //create a countdown label and display it in the center of the view
+//            self.countdownLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")
+//            self.countdownLabel.text = "\(self.countdown)"
+//            self.countdownLabel.fontSize = 200
+//            self.countdownLabel.fontColor = SKColor.red
+//            self.countdownLabel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
+//            self.addChild(self.countdownLabel)
+            
+            if self.startTimerInterval == 0.0 {
+                self.startTimer?.invalidate()
+                //self.countdownLabel.removeFromParent()
+                self.initalizePlayArea()
+                self.initializeCoinMan()
+                self.initializeCoinTimer()
+                self.initializeBombTimer()
+            }
+            
+            //reset the timer interval
+            self.startTimerInterval = 3.0
+            
+        })
     }
     
     //MARK:- SK methods
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         //make coinman jump
-        coinMan.physicsBody?.applyForce(CGVector(dx: 0, dy: 50_000))
+        coinMan.physicsBody?.applyForce(CGVector(dx: 0, dy: 20_000))
         
         //check whether the play button was touched
         let touch = touches.first
