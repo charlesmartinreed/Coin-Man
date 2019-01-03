@@ -7,6 +7,7 @@
 // IMAGE ATTRIBUTIONS: TODO: FORMAT THIS PROPERLY!
 // <div>Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 //<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"             title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+//<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 
 import SpriteKit
 import GameplayKit
@@ -14,9 +15,9 @@ import GameplayKit
 class GameScene: SKScene {
     
     //MARK:- Properties
-    private var coinMan: SKSpriteNode?
-    private var ground: SKSpriteNode?
-    private var ceiling: SKSpriteNode?
+    private var coinMan: SKSpriteNode!
+    private var ground: SKSpriteNode!
+    private var ceiling: SKSpriteNode!
     
     private var coinTimer: Timer?
     private var coinTimerInterval: Double = 1.0
@@ -24,6 +25,9 @@ class GameScene: SKScene {
     private var bombTimerInterval: Double = 2.0
     
     private var scoreLabel: SKLabelNode!
+    private var yourScoreLabel: SKLabelNode!
+    private var finalScoreLabel: SKLabelNode!
+    private var playButton: SKSpriteNode!
     
     //MARK:- Contact/Collision Properties
     let coinManCategory: UInt32 = 0x1 << 1 //1
@@ -51,6 +55,8 @@ class GameScene: SKScene {
     }
     
     func initalizePlayArea() {
+        scene?.isPaused = false
+        
         //set up the label
         scoreLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")
         scoreLabel.text = "Score: \(score)"
@@ -59,23 +65,46 @@ class GameScene: SKScene {
         scoreLabel?.position = CGPoint(x: frame.minX * 0.5, y: frame.maxY - 150) //position at the top left
         addChild(scoreLabel)
         
-        ground = childNode(withName: "ground") as? SKSpriteNode
-        ground?.physicsBody?.categoryBitMask = boundingCategory
-        ground?.physicsBody?.collisionBitMask = coinManCategory
+        ground = SKSpriteNode(color: SKColor.green, size: CGSize(width: self.size.width, height: 140))
+        //ground = childNode(withName: "ground") as? SKSpriteNode
+        ground?.position = CGPoint(x: 0, y: -598.375)
         
-        ceiling = childNode(withName: "ceiling") as? SKSpriteNode
-        ceiling?.physicsBody?.categoryBitMask = boundingCategory
-        ceiling?.physicsBody?.collisionBitMask = coinManCategory
+        ground.physicsBody = SKPhysicsBody(rectangleOf: ground.size)
+        ground.physicsBody?.isDynamic = false
+        ground.physicsBody?.affectedByGravity = false
+        ground.physicsBody?.categoryBitMask = boundingCategory
+        ground.physicsBody?.collisionBitMask = coinManCategory
+        addChild(ground)
+        
+        ceiling = SKSpriteNode(color: SKColor.blue, size: CGSize(width: self.size.width, height: 75))
+        //ceiling = childNode(withName: "ceiling") as? SKSpriteNode
+        ceiling.position = CGPoint(x: -0, y: 819.538)
+        
+        ceiling.physicsBody = SKPhysicsBody(rectangleOf: ceiling.size)
+        ceiling.physicsBody?.isDynamic = true
+        ceiling.physicsBody?.affectedByGravity = false
+        ceiling.physicsBody?.categoryBitMask = boundingCategory
+        ceiling.physicsBody?.collisionBitMask = coinManCategory
+        addChild(ceiling)
     }
     
     func initializeCoinMan() {
         //create a reference to the object created in sks
-        coinMan = childNode(withName: "coinMan") as? SKSpriteNode
+        //coinMan = childNode(withName: "coinMan") as? SKSpriteNode
+        coinMan = SKSpriteNode(color: SKColor.purple, size: CGSize(width: 100, height: 200))
+        
+        guard let groundPosition = ground?.position else { return }
+        coinMan?.position = CGPoint(x: groundPosition.x, y: groundPosition.y + coinMan.size.height)
+        
+        addChild(coinMan)
         
         //contact/collision setup
-        coinMan?.physicsBody?.categoryBitMask = coinManCategory
-        coinMan?.physicsBody?.contactTestBitMask = coinCategory | bombCategory
-        coinMan?.physicsBody?.collisionBitMask = boundingCategory //coin man should only be able to "collide" with bounding areas
+        coinMan.physicsBody = SKPhysicsBody(rectangleOf: coinMan.size)
+        coinMan.physicsBody?.isDynamic = true
+        coinMan.physicsBody?.affectedByGravity = true
+        coinMan.physicsBody?.categoryBitMask = coinManCategory
+        coinMan.physicsBody?.contactTestBitMask = coinCategory | bombCategory
+        coinMan.physicsBody?.collisionBitMask = boundingCategory //coin man should only be able to "collide" with bounding areas
         
         
     }
@@ -168,14 +197,75 @@ class GameScene: SKScene {
     
     //MARK:- Game end logic
     func gameOver() {
-        print("Game is over!")
+        
+            //pause and fade the scene
+            //grab the nodes in the scene
+            scene?.children.forEach({ (node) in
+                node.run(SKAction.fadeOut(withDuration: 1))
+                node.removeFromParent()
+                scene?.isPaused = true
+            })
+        
+            //give the gameOver Label
+            yourScoreLabel = SKLabelNode(text: "Your Score:")
+            yourScoreLabel.position = CGPoint(x: 0, y: 200)
+            yourScoreLabel.fontSize = 100
+            addChild(yourScoreLabel)
+        
+            finalScoreLabel = SKLabelNode(text: "\(score)")
+            finalScoreLabel.position = CGPoint(x: 0, y: 0)
+            finalScoreLabel.fontSize = 200
+            addChild(finalScoreLabel)
+        
+            //create the restart level button
+            playButton = SKSpriteNode(imageNamed: "playButton")
+            playButton.name = "play"
+            playButton.position = CGPoint(x: 0, y: -200)
+            addChild(playButton)
+    }
+    
+    func startNewGame() {
+        //reset the score
+        score = 0
+        
+        //remove everything on the screen
+        playButton.removeFromParent()
+        yourScoreLabel.removeFromParent()
+        finalScoreLabel.removeFromParent()
+        
+        //stop your timers
+        bombTimer?.invalidate()
+        coinTimer?.invalidate()
+        
+        //call your init functions again
+        initalizePlayArea()
+        initializeCoinMan()
+        initializeCoinTimer()
+        initializeBombTimer()
     }
     
     //MARK:- SK methods
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
         //make coinman jump
-        coinMan?.physicsBody?.applyForce(CGVector(dx: 0, dy: 100_000))
+        coinMan.physicsBody?.applyForce(CGVector(dx: 0, dy: 50_000))
+        
+        //check whether the play button was touched
+        let touch = touches.first
+        if let location = touch?.location(in: self) {
+            //check for nodes at a location
+            let allNodes = nodes(at: location)
+            
+            //see if the node is the play button
+            for node in allNodes {
+                if node.name == "play" {
+                    //start the game anew
+                    startNewGame()
+                }
+            }
+        }
+        
+        
+        
     }
     
     
@@ -204,10 +294,18 @@ extension SKScene: SKPhysicsContactDelegate {
             }
             
             //MARK:- //was contactA or B a bomb?
-            if contact.bodyA.categoryBitMask == scene.bombCategory || contact.bodyB.categoryBitMask == scene.bombCategory {
-                //scene.score -= 1
+            if contact.bodyA.categoryBitMask == scene.bombCategory {
+                //remove the bomb, end the game
+                contact.bodyA.node?.removeFromParent()
                 scene.gameOver()
             }
+            
+            if contact.bodyB.categoryBitMask == scene.bombCategory {
+                //remove the bomb, end the game
+                contact.bodyB.node?.removeFromParent()
+                scene.gameOver()
+            }
+            
         }
     }
 }
