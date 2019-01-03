@@ -6,6 +6,7 @@
 //  Copyright © 2019 Charles Martin Reed. All rights reserved.
 // IMAGE ATTRIBUTIONS: TODO: FORMAT THIS PROPERLY!
 // <div>Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+//<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"             title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 
 import SpriteKit
 import GameplayKit
@@ -16,8 +17,12 @@ class GameScene: SKScene {
     private var coinMan: SKSpriteNode?
     private var ground: SKSpriteNode?
     private var ceiling: SKSpriteNode?
+    
     private var coinTimer: Timer?
     private var coinTimerInterval: Double = 1.0
+    private var bombTimer: Timer?
+    private var bombTimerInterval: Double = 2.0
+    
     private var scoreLabel: SKLabelNode!
     
     //MARK:- Contact/Collision Properties
@@ -41,6 +46,7 @@ class GameScene: SKScene {
         initalizePlayArea()
         initializeCoinMan()
         initializeCoinTimer()
+        initializeBombTimer()
         
     }
     
@@ -80,7 +86,13 @@ class GameScene: SKScene {
         })
     }
     
-    //MARK:- Coin creation function
+    func initializeBombTimer() {
+        bombTimer = Timer.scheduledTimer(withTimeInterval: bombTimerInterval, repeats: true, block: { (_) in
+            self.createBombs()
+        })
+    }
+    
+    //MARK:- Object creation functions
     func createCoins() {
         let coin = SKSpriteNode(imageNamed: "coin")
         
@@ -109,13 +121,62 @@ class GameScene: SKScene {
         
     }
     
+    func createBombs() {
+        let bomb = SKSpriteNode(imageNamed: "bomb")
+        
+        bomb.physicsBody = SKPhysicsBody(rectangleOf: bomb.size)
+        bomb.physicsBody?.affectedByGravity = false
+        bomb.physicsBody?.categoryBitMask = bombCategory
+        bomb.physicsBody?.contactTestBitMask = coinManCategory
+        bomb.physicsBody?.collisionBitMask = 0
+        //addChild(bomb)
+        
+        //bomb positioning
+        let maxY = (size.height / 2) - (bomb.size.height / 2)
+        let minY = (-size.height / 2) + (bomb.size.height / 2)
+        let bombY = CGFloat.random(in: minY...maxY)
+        
+        bomb.position = CGPoint(x: (self.size.width / 2 + (bomb.size.width / 2)), y: bombY)
+        
+        //check for valid positioning
+        if !checkForOverlappingNodes(node: bomb) {
+            addChild(bomb)
+        } else {
+            createBombs()
+        }
+        
+        let actions = [
+            SKAction.moveBy(x: -self.size.width - bomb.size.width, y: 0, duration: 4),
+            SKAction.removeFromParent()
+        ]
+        bomb.run(SKAction.sequence(actions))
+    }
+    
+    func checkForOverlappingNodes(node: SKSpriteNode) -> Bool {
+        //grab the list of current nodes
+        let visibleNodes = self.children
+        var nodeIsOccupied = false
+        
+        visibleNodes.forEach { (existingNode) in
+            if node.position == existingNode.position {
+                nodeIsOccupied = true
+            }
+        }
+        
+        return nodeIsOccupied
+    }
+    
+    //MARK:- Game end logic
+    func gameOver() {
+        print("Game is over!")
+    }
+    
+    //MARK:- SK methods
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
         //make coinman jump
         coinMan?.physicsBody?.applyForce(CGVector(dx: 0, dy: 100_000))
     }
-    
-    
     
     
     override func update(_ currentTime: TimeInterval) {
@@ -128,20 +189,25 @@ extension SKScene: SKPhysicsContactDelegate {
     public func didBegin(_ contact: SKPhysicsContact) {
         //fired off when objects "hit" one another
         if let scene = self as? GameScene {
-            scene.score += 1
             
+            //MARK:- was contactA or B a coin?
             //if the first body is the coin...
             if contact.bodyA.categoryBitMask == scene.coinCategory {
                 //...remove the coin
                 contact.bodyA.node?.removeFromParent()
+                scene.score += 1
             }
             
             if contact.bodyB.categoryBitMask == scene.coinCategory {
                 contact.bodyB.node?.removeFromParent()
+                scene.score += 1
+            }
+            
+            //MARK:- //was contactA or B a bomb?
+            if contact.bodyA.categoryBitMask == scene.bombCategory || contact.bodyB.categoryBitMask == scene.bombCategory {
+                //scene.score -= 1
+                scene.gameOver()
             }
         }
-        
-        //was contactA coin or player?
-        
     }
 }
