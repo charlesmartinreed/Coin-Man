@@ -18,7 +18,6 @@ class GameScene: SKScene {
     //MARK:- Properties
     private var coinMan: SKSpriteNode!
     private var coinManRunningSpeed: TimeInterval = 0.09
-    private var ground: SKSpriteNode!
     private var ceiling: SKSpriteNode!
     
     private var coinTimer: Timer?
@@ -28,7 +27,7 @@ class GameScene: SKScene {
     private var startTimer: Timer?
     private var startTimerInterval: Double = 3.0
     
-    private var countdownLabel: SKLabelNode!
+   
     private var scoreLabel: SKLabelNode!
     private var yourScoreLabel: SKLabelNode!
     private var finalScoreLabel: SKLabelNode!
@@ -47,13 +46,10 @@ class GameScene: SKScene {
         }
     }
     
-    var countdown: Int = 3
-//        didSet {
-//            countdownLabel.text = "\(countdown)"
-//        }
-    //}
+
     
     override func didMove(to view: SKView) {
+        scene?.isPaused = false
         
         //set up the contact delegate(s)
         physicsWorld.contactDelegate = self
@@ -68,8 +64,6 @@ class GameScene: SKScene {
     }
     
     func initalizePlayArea() {
-        scene?.isPaused = false
-        
         //set up the label
         scoreLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")
         scoreLabel.text = "Score: \(score)"
@@ -77,17 +71,6 @@ class GameScene: SKScene {
         scoreLabel.fontColor = SKColor.white
         scoreLabel?.position = CGPoint(x: frame.minX * 0.5, y: frame.maxY - 150) //position at the top left
         addChild(scoreLabel)
-        
-//        ground = SKSpriteNode(color: SKColor.green, size: CGSize(width: self.size.width, height: 100))
-//        //ground = childNode(withName: "ground") as? SKSpriteNode
-//        ground?.position = CGPoint(x: 0, y: -598.375)
-//
-//        ground.physicsBody = SKPhysicsBody(rectangleOf: ground.size)
-//        ground.physicsBody?.isDynamic = false
-//        ground.physicsBody?.affectedByGravity = false
-//        ground.physicsBody?.categoryBitMask = boundingCategory
-//        ground.physicsBody?.collisionBitMask = coinManCategory
-//        addChild(ground)
         
         ceiling = SKSpriteNode(color: SKColor.blue, size: CGSize(width: self.size.width, height: 100))
         //ceiling = childNode(withName: "ceiling") as? SKSpriteNode
@@ -105,10 +88,11 @@ class GameScene: SKScene {
         //create a reference to the object created in sks
         //coinMan = childNode(withName: "coinMan") as? SKSpriteNode
         coinMan = SKSpriteNode(color: SKColor.purple, size: CGSize(width: 100, height: 200))
+        let sizingGrass = SKSpriteNode(imageNamed: "grass")
         
         //let startX = (-size.width / 2) + (coinMan.size.width / 2)
         //let startY = -size.height / 2 + (coinMan.size.height / 2) - 21
-        coinMan?.position = CGPoint(x: 0, y: 0)
+        coinMan?.position = CGPoint(x: 0, y: sizingGrass.size.height)
         
         addChild(coinMan)
         
@@ -145,6 +129,7 @@ class GameScene: SKScene {
     //MARK:- Object creation functions
     func createCoins() {
         let coin = SKSpriteNode(imageNamed: "coin")
+        let sizingGrass = SKSpriteNode(imageNamed: "grass")
         
         //physicsBody setups
         coin.physicsBody = SKPhysicsBody(rectangleOf: coin.size)
@@ -157,7 +142,7 @@ class GameScene: SKScene {
         
         //position the coin, according to the scene
         let maxY = (size.height / 2) - (coin.size.height / 2)
-        let minY = (-size.height / 2) + (coin.size.height / 2)
+        let minY = (-size.height / 2) + (coin.size.height / 2) + sizingGrass.size.height
         let coinY = CGFloat.random(in: minY...maxY)
         
         coin.position = CGPoint(x: (self.size.width / 2) + (coin.size.width / 2), y: coinY)
@@ -173,6 +158,7 @@ class GameScene: SKScene {
     
     func createBombs() {
         let bomb = SKSpriteNode(imageNamed: "bomb")
+        let sizingGrass = SKSpriteNode(imageNamed: "grass")
         
         bomb.physicsBody = SKPhysicsBody(rectangleOf: bomb.size)
         bomb.physicsBody?.affectedByGravity = false
@@ -183,7 +169,7 @@ class GameScene: SKScene {
         
         //bomb positioning
         let maxY = (size.height / 2) - (bomb.size.height / 2)
-        let minY = (-size.height / 2) + (bomb.size.height / 2)
+        let minY = (-size.height / 2) + (bomb.size.height / 2) + sizingGrass.size.height
         let bombY = CGFloat.random(in: minY...maxY)
         
         bomb.position = CGPoint(x: (self.size.width / 2 + (bomb.size.width / 2)), y: bombY)
@@ -209,7 +195,8 @@ class GameScene: SKScene {
         
         for number in 0...numberOfGrassObjects {
             let grass = SKSpriteNode(imageNamed: "grass")
-            grass.physicsBody = SKPhysicsBody(rectangleOf: grass.size)
+            let physicsGrassRect = CGSize(width: grass.size.width, height: grass.size.height / 2)
+            grass.physicsBody = SKPhysicsBody(rectangleOf: physicsGrassRect)
             grass.physicsBody?.isDynamic = false
             grass.physicsBody?.affectedByGravity = false
             grass.physicsBody?.categoryBitMask = boundingCategory
@@ -220,6 +207,19 @@ class GameScene: SKScene {
             let grassX = (-size.width / 2) + (grass.size.width / 2) + grass.size.width * CGFloat(number)
             let grassY = -size.height / 2 + (grass.size.height / 2) - 20
             grass.position = CGPoint(x: grassX, y: grassY)
+            
+            //moving the grass
+            let speed: Double = 100.0
+            let leftDuration = TimeInterval(grass.size.width + grass.size.width * CGFloat(number)) / speed
+            let fullDuration = TimeInterval(size.width + grass.size.width) / speed
+            let firstMoveLeft = SKAction.moveBy(x: -grass.size.width - grass.size.width * CGFloat(number), y: 0, duration: leftDuration)
+            
+            //reset the grass
+            let resetGrass = SKAction.moveBy(x: size.width + grass.size.width, y: 0, duration: 0)
+            let grassFullMove = SKAction.moveBy(x: -size.width - grass.size.width, y: 0, duration: fullDuration)
+            let grassAnimation = SKAction.repeatForever(SKAction.sequence([grassFullMove, resetGrass]))
+            
+            grass.run(SKAction.sequence([firstMoveLeft, resetGrass, grassAnimation]))
         }
         
     }
@@ -294,34 +294,25 @@ class GameScene: SKScene {
     }
     
     func startNewRoundCountdown() {
-        startTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false, block: { [unowned self] (_) in
+            let countdownScene = CountdownScene(size: self.size)
+            scene?.view?.presentScene(countdownScene)
+            //let reveal = SKTransition.reveal(with: .down, duration: 0.1)
+            //scene?.view?.presentScene(countdownScene, transition: reveal)
+        
             
-            while self.countdown > 0 {
-                self.countdown -= 1
-            }
-            
-            //create a countdown label and display it in the center of the view
-//            self.countdownLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")
-//            self.countdownLabel.text = "\(self.countdown)"
-//            self.countdownLabel.fontSize = 200
-//            self.countdownLabel.fontColor = SKColor.red
-//            self.countdownLabel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
-//            self.addChild(self.countdownLabel)
-            
-            if self.countdown == 0 {
-                self.startTimer?.invalidate()
-                //self.countdownLabel.removeFromParent()
-                self.initalizePlayArea()
-                self.initializeCoinMan()
-                self.initializeCoinTimer()
-                self.initializeBombTimer()
-                self.createGrass()
-            }
-            
-            //reset the timer interval
-            self.countdown = 3
-            
-        })
+//            countdownLabel.removeFromParent()
+//            countdown -= 1
+//
+//        if countdown == 0 {
+//            initalizePlayArea()
+//            initializeCoinMan()
+//            initializeCoinTimer()
+//            initializeBombTimer()
+//            createGrass()
+//
+//            countdown = 3
+//        }
+        
     }
     
     //MARK:- SK methods

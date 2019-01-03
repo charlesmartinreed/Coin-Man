@@ -15,6 +15,7 @@
 		8C9621B221DD658200DE5F8C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8C9621B021DD658200DE5F8C /* Main.storyboard */; };
 		8C9621B421DD658400DE5F8C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C9621B321DD658400DE5F8C /* Assets.xcassets */; };
 		8C9621B721DD658400DE5F8C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8C9621B521DD658400DE5F8C /* LaunchScreen.storyboard */; };
+		8C9621BF21DDE64D00DE5F8C /* CountdownScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C9621BE21DDE64D00DE5F8C /* CountdownScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		8C9621B321DD658400DE5F8C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8C9621B621DD658400DE5F8C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8C9621B821DD658400DE5F8C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8C9621BE21DDE64D00DE5F8C /* CountdownScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 				8C9621A821DD658200DE5F8C /* GameScene.sks */,
 				8C9621AA21DD658200DE5F8C /* Actions.sks */,
 				8C9621AC21DD658200DE5F8C /* GameScene.swift */,
+				8C9621BE21DDE64D00DE5F8C /* CountdownScene.swift */,
 				8C9621AE21DD658200DE5F8C /* GameViewController.swift */,
 				8C9621B021DD658200DE5F8C /* Main.storyboard */,
 				8C9621B321DD658400DE5F8C /* Assets.xcassets */,
@@ -148,6 +151,7 @@
 			files = (
 				8C9621AD21DD658200DE5F8C /* GameScene.swift in Sources */,
 				8C9621AF21DD658200DE5F8C /* GameViewController.swift in Sources */,
+				8C9621BF21DDE64D00DE5F8C /* CountdownScene.swift in Sources */,
 				8C9621A721DD658200DE5F8C /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
