@@ -9,6 +9,7 @@
 //<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"             title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 //<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 //<div>Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+//running mascot provided by http://bevouliin.com under CC0 license, coutesy of opengameart.org
 
 import SpriteKit
 import GameplayKit
@@ -31,6 +32,7 @@ class GameScene: SKScene {
     private var scoreLabel: SKLabelNode!
     private var yourScoreLabel: SKLabelNode!
     private var finalScoreLabel: SKLabelNode!
+    private var highScoreLabel: SKLabelNode!
     private var playButton: SKSpriteNode!
     
     //MARK:- Contact/Collision Properties
@@ -46,6 +48,8 @@ class GameScene: SKScene {
         }
     }
     
+    var highScore: Int!
+    
 
     
     override func didMove(to view: SKView) {
@@ -53,6 +57,15 @@ class GameScene: SKScene {
         
         //set up the contact delegate(s)
         physicsWorld.contactDelegate = self
+        
+        //try to get the old high score
+//        if let currentHighScore = UserDefaults.standard.value(forKey: "highScore") as? Int {
+//            highScore = currentHighScore
+//        } else {
+//            highScore = 0
+//        }
+        
+        highScore = UserDefaults.standard.value(forKey: "highScore") as? Int ?? 0
         
         //startNewRoundCountdown()
         initalizePlayArea()
@@ -249,18 +262,38 @@ class GameScene: SKScene {
                 scene?.isPaused = true
             })
         
+        if score > highScore {
             //give the gameOver Label
-            yourScoreLabel = SKLabelNode(text: "Your Score:")
+            yourScoreLabel = SKLabelNode(text: "New High Score!!!")
             yourScoreLabel.position = CGPoint(x: 0, y: 200)
-            yourScoreLabel.fontSize = 100
+            yourScoreLabel.color = SKColor(red: 132/255.0, green: 59/255.0, blue: 98/255.0, alpha: 1)
+            yourScoreLabel.fontSize = 75
             yourScoreLabel.zPosition = 1
             addChild(yourScoreLabel)
-        
+            
             finalScoreLabel = SKLabelNode(text: "\(score)")
             finalScoreLabel.position = CGPoint(x: 0, y: 0)
-            finalScoreLabel.fontSize = 200
+            finalScoreLabel.color = SKColor(red: 132/255.0, green: 59/255.0, blue: 98/255.0, alpha: 1)
+            finalScoreLabel.fontSize = 150
             finalScoreLabel.zPosition = 1
             addChild(finalScoreLabel)
+            
+            saveHighScore()
+            
+        } else {
+            //give the gameOver Label
+            yourScoreLabel = SKLabelNode(text: "Your Score")
+            yourScoreLabel.position = CGPoint(x: 0, y: 200)
+            yourScoreLabel.fontSize = 75
+            yourScoreLabel.zPosition = 1
+            addChild(yourScoreLabel)
+            
+            finalScoreLabel = SKLabelNode(text: "\(score)")
+            finalScoreLabel.position = CGPoint(x: 0, y: 0)
+            finalScoreLabel.fontSize = 150
+            finalScoreLabel.zPosition = 1
+            addChild(finalScoreLabel)
+        }
         
             //create the restart level button
             playButton = SKSpriteNode(imageNamed: "playButton")
@@ -268,6 +301,11 @@ class GameScene: SKScene {
             playButton.position = CGPoint(x: 0, y: -200)
             playButton.zPosition = 1
             addChild(playButton)
+    }
+    
+    func saveHighScore() {
+        //just using NSUserDefaults
+        UserDefaults.standard.set(score, forKey: "highScore")
     }
     
     func startNewGame() {
@@ -296,22 +334,6 @@ class GameScene: SKScene {
     func startNewRoundCountdown() {
             let countdownScene = CountdownScene(size: self.size)
             scene?.view?.presentScene(countdownScene)
-            //let reveal = SKTransition.reveal(with: .down, duration: 0.1)
-            //scene?.view?.presentScene(countdownScene, transition: reveal)
-        
-            
-//            countdownLabel.removeFromParent()
-//            countdown -= 1
-//
-//        if countdown == 0 {
-//            initalizePlayArea()
-//            initializeCoinMan()
-//            initializeCoinTimer()
-//            initializeBombTimer()
-//            createGrass()
-//
-//            countdown = 3
-//        }
         
     }
     
